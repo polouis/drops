@@ -12,9 +12,7 @@ void EffectGranular::update(void)
     return;
   }
 
-  for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    this->circularBlockBuffer[this->writeIndex + i] = inputBlock->data[i];
-  }
+  memcpy(&this->circularBlockBuffer[this->writeIndex], inputBlock->data, AUDIO_BLOCK_SAMPLES * sizeof(uint16_t));
 
   this->writeIndex += AUDIO_BLOCK_SAMPLES;
   if (this->writeIndex >= GRANULAR_BUFFER_LENGTH) {
