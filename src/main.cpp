@@ -59,7 +59,7 @@ void buttonDelayHandler(bool on)
   }
 }
 
-void encoderButtonHandler(int8_t direction, long position)
+void encoderButtonHandler(int8_t direction)
 {
   delayLength += direction * 10;
   if (delayLength < 50) {
@@ -73,10 +73,10 @@ void encoderButtonHandler(int8_t direction, long position)
  	granular.delay(delayLength);
 }
 
-void encoderDelayHandler(int8_t direction, long position)
+void encoderDelayHandler(int8_t direction)
 {
-  Serial.print("Encoder delay position = ");
-  Serial.print(position);
+  Serial.print("Encoder delay direction = ");
+  Serial.print(direction);
   Serial.println();
 }
 

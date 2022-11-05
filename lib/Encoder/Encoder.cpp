@@ -23,7 +23,7 @@ namespace drop
       this->position = newPosition;
       if (this->eventHandler != NULL && oldPosition != INT16_MAX)
       {
-        this->eventHandler(newPosition - oldPosition, newPosition);
+        this->eventHandler(newPosition - oldPosition);
       }
     }
   }

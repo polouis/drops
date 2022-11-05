@@ -6,7 +6,7 @@
 
 namespace drop
 {
-  typedef void (*EncoderButtonEventHandler)(int8_t direction, long position);
+  typedef void (*EncoderButtonEventHandler)(int8_t direction);
 
   class Encoder : public InterfaceControl
   {
