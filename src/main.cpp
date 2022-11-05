@@ -24,23 +24,25 @@ drop::EncoderButton encoderButton;
 #define GRANULAR_MEMORY_SIZE 12800  // enough for 290 ms at 44.1 kHz
 int16_t granularMemory[GRANULAR_MEMORY_SIZE];
 
-float knobA2 = 0.0f;
-float knobA3 = 0.0f;
+float knobDelayLength = 0.0f;
+float knobMix = 0.0f;
+elapsedMillis elapsed = 0;
 
 void buttonHandler(bool on)
 {
   if (on)
   {
-    float msec = 25.0 + (knobA3 * 75.0);
-    granular1.beginPitchShift(msec);
-    Serial.print("Granular pitch phift on using ");
+    float msec = 25.0 + (knobDelayLength * 975.0);
+    Serial.print("Effect on with delay = ");
     Serial.print(msec);
-    Serial.println(" grains");
+    Serial.println("ms");
+   	granular.delay(msec);
   }
   else
   {
-    Serial.println("Granular effect off");
-    granular1.stop();
+    Serial.println("Granular off");
+    //granular.stop();
+    granular.disable();
   }
 }
 
@@ -62,25 +64,23 @@ void setup() {
 
   sgtl5000_1.enable();
   sgtl5000_1.volume(0.9);
-
-  mixer1.gain(0, 0.0);
-  mixer1.gain(1, 1.0);
-
-  // the Granular effect requires memory to operate
-  granular1.begin(granularMemory, GRANULAR_MEMORY_SIZE);
 }
 
 void loop() {
-
   button.Update();
   encoderButton.Update();
 
   // read knobs, scale to 0-1.0 numbers
-  knobA2 = (float)analogRead(A2) / 1023.0;
-  knobA3 = (float)analogRead(A3) / 1023.0;
+  knobDelayLength = (float)analogRead(A2) / 1023.0;
+  knobMix = (float)analogRead(A3) / 1023.0;
 
-  // Continuously adjust the speed, based on the A3 pot
-  float ratio;
-  ratio = powf(2.0, knobA2 * 2.0 - 1.0); // 0.5 to 2.0
-  granular1.setSpeed(ratio);
+  if (elapsed > 1000) {
+    elapsed = 0;
+    Serial.print("Balance = ");
+    Serial.println(knobMix);
+  }
+
+  mixer1.gain(0, 1.0 - knobMix);
+  mixer1.gain(1, knobMix);
+
 }
