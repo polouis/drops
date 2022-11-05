@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include <DropGranular.hpp>
+#include <EffectGranular.hpp>
 
-void DropGranular::update(void)
+void EffectGranular::update(void)
 {
   if (this->active == false) {
     return;

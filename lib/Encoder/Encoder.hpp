@@ -6,17 +6,18 @@
 
 namespace drop
 {
-  typedef void (*EncoderButtonEventHandler)(long position);
+  typedef void (*EncoderButtonEventHandler)(int8_t direction, long position);
 
-  class EncoderButton : public InterfaceControl
+  class Encoder : public InterfaceControl
   {
     private:
       EncoderButtonEventHandler eventHandler;
-      Encoder* rotEnc;
-      long position = -999;
+      ::Encoder* rotEnc;
+      int16_t position = INT16_MAX;
       uint32_t debounce = 4;
+      elapsedMillis elapsed = 0;
 
-    public :
+    public:
       void Init(uint8_t pinEncoder1, uint8_t pinEncoder2);
       void Update() override;
       void RegisterHandler(EncoderButtonEventHandler eventHandler);

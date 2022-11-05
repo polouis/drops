@@ -1,5 +1,5 @@
 #include <Audio.h>
-#include <DropGranular.hpp>
+#include <EffectGranular.hpp>
 
 #include <Audio.h>
 #include <Wire.h>
@@ -9,7 +9,7 @@
 
 // GUItool: begin automatically generated code
 AudioInputI2S            i2s2;           //xy=163.28571319580078,338
-DropGranular             granular;         //xy=331,432
+EffectGranular             granular;         //xy=331,432
 AudioMixer4              mixer1;         //xy=496.28570556640625,349.5713806152344
 AudioOutputI2S           i2s1;           //xy=744.8570556640625,356
 AudioConnection          patchCord1(i2s2, 0, mixer1, 0);

@@ -15,16 +15,18 @@
 
 #include "AudioRouting.hpp"
 #include <OnOffButton.hpp>
-#include <EncoderButton.hpp>
+#include <Encoder.hpp>
 #include <PinMapping.hpp>
 
 drop::OnOffButton button;
-drop::EncoderButton encoderButton;
+drop::Encoder encoderButton;
 
-#define GRANULAR_MEMORY_SIZE 12800  // enough for 290 ms at 44.1 kHz
-int16_t granularMemory[GRANULAR_MEMORY_SIZE];
+drop::OnOffButton buttonDelay;
+drop::Encoder encoderDelay;
 
-float knobDelayLength = 0.0f;
+uint16_t delayLength = 300;
+
+//float knobDelayLength = 0.0f;
 float knobMix = 0.0f;
 elapsedMillis elapsed = 0;
 
@@ -32,23 +34,48 @@ void buttonHandler(bool on)
 {
   if (on)
   {
-    float msec = 25.0 + (knobDelayLength * 975.0);
+    //float msec = 25.0 + (knobDelayLength * 975.0);
     Serial.print("Effect on with delay = ");
-    Serial.print(msec);
+    Serial.print(delayLength);
     Serial.println("ms");
-   	granular.delay(msec);
+   	granular.delay(delayLength);
   }
   else
   {
     Serial.println("Granular off");
-    //granular.stop();
     granular.disable();
   }
 }
 
-void encoderButtonHandler(long position)
+void buttonDelayHandler(bool on)
 {
-  Serial.print("Encoder position = ");
+  if (on)
+  {
+    Serial.println("Effect delay on");
+  }
+  else
+  {
+    Serial.println("Effect delay off");
+  }
+}
+
+void encoderButtonHandler(int8_t direction, long position)
+{
+  delayLength += direction * 10;
+  if (delayLength < 50) {
+    delayLength = 50;
+  }
+  Serial.print("Delay length = ");
+  Serial.print(delayLength);
+  Serial.print(" / direction = ");
+  Serial.print(direction);
+  Serial.println();
+ 	granular.delay(delayLength);
+}
+
+void encoderDelayHandler(int8_t direction, long position)
+{
+  Serial.print("Encoder delay position = ");
   Serial.print(position);
   Serial.println();
 }
@@ -62,25 +89,32 @@ void setup() {
   encoderButton.Init(PIN_ENCODER_GRANULAR_1, PIN_ENCODER_GRANULAR_2);
   encoderButton.RegisterHandler(encoderButtonHandler);
 
+  encoderDelay.Init(PIN_ENCODER_DELAY_1, PIN_ENCODER_DELAY_2);
+  encoderDelay.RegisterHandler(encoderDelayHandler);
+  buttonDelay.Init(PIN_BUTTON_DELAY);
+  buttonDelay.RegisterHandler(buttonDelayHandler);
+
   sgtl5000_1.enable();
   sgtl5000_1.volume(0.9);
 }
 
 void loop() {
+  buttonDelay.Update();
+  encoderDelay.Update();
+
   button.Update();
   encoderButton.Update();
 
   // read knobs, scale to 0-1.0 numbers
-  knobDelayLength = (float)analogRead(A2) / 1023.0;
+  //knobDelayLength = (float)analogRead(A2) / 1023.0;
   knobMix = (float)analogRead(A3) / 1023.0;
 
   if (elapsed > 1000) {
     elapsed = 0;
-    Serial.print("Balance = ");
-    Serial.println(knobMix);
+    //Serial.print("Balance = "); Serial.println(knobMix);
+    //Serial.print("Audio CPU usage = "); Serial.println(AudioProcessorUsage());
   }
 
   mixer1.gain(0, 1.0 - knobMix);
   mixer1.gain(1, knobMix);
-
 }

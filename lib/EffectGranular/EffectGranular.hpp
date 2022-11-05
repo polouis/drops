@@ -7,12 +7,12 @@
 #define GRANULAR_BUFFER_BLOCK_COUNT 1000
 #define GRANULAR_BUFFER_LENGTH (AUDIO_BLOCK_SAMPLES * GRANULAR_BUFFER_BLOCK_COUNT)
 
-class DropGranular : public AudioStream
+class EffectGranular : public AudioStream
 {
 public:
-	DropGranular() : AudioStream(1, inputQueueArray) {
+	EffectGranular() : AudioStream(1, inputQueueArray) {
 	}
-	void delay(float milliseconds) {
+	void delay(uint16_t milliseconds) {
 		this->writeIndex = 0;
 		memset(this->circularBlockBuffer, 0, sizeof(this->circularBlockBuffer));
 		if (milliseconds < 0.0f) milliseconds = 0.0f;
