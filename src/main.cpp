@@ -38,12 +38,12 @@ void buttonHandler(bool on)
     Serial.print("Effect on with delay = ");
     Serial.print(delayLength);
     Serial.println("ms");
-   	granular.delay(delayLength);
+   	granular.Delay(delayLength);
   }
   else
   {
     Serial.println("Granular off");
-    granular.disable();
+    granular.Disable();
   }
 }
 
@@ -67,10 +67,8 @@ void encoderButtonHandler(int8_t direction)
   }
   Serial.print("Delay length = ");
   Serial.print(delayLength);
-  Serial.print(" / direction = ");
-  Serial.print(direction);
   Serial.println();
- 	granular.delay(delayLength);
+ 	granular.Delay(delayLength);
 }
 
 void encoderDelayHandler(int8_t direction)

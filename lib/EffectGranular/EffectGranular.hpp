@@ -7,30 +7,59 @@
 #define GRANULAR_BUFFER_BLOCK_COUNT 1000
 #define GRANULAR_BUFFER_LENGTH (AUDIO_BLOCK_SAMPLES * GRANULAR_BUFFER_BLOCK_COUNT)
 
-class EffectGranular : public AudioStream
+namespace drop
 {
-public:
-	EffectGranular() : AudioStream(1, inputQueueArray) {
-	}
-	void delay(uint16_t milliseconds) {
-		this->writeIndex = 0;
-		memset(this->circularBlockBuffer, 0, sizeof(this->circularBlockBuffer));
-		if (milliseconds < 0.0f) milliseconds = 0.0f;
-    this->delayLength = milliseconds;
-    this->delaySampleLength = this->delayLength * AUDIO_SAMPLE_RATE_EXACT / 1000.0f;
-    this->active = true;
-	}
-	void disable() {
-    this->active = false;
-	}
-	virtual void update(void);
-private:
-	bool active;
-  uint16_t delayLength;
-  uint16_t delaySampleLength;
-  uint16_t writeIndex;
-	int16_t circularBlockBuffer[GRANULAR_BUFFER_LENGTH];
-	audio_block_t *inputQueueArray[1];
-};
+  enum State
+  {
+    Idle,
+    Playing,
+    Skip,
+  };
+
+  struct Grain
+  {
+    uint16_t startIndex; // Start index of the grain in the circular Buffer
+    uint16_t sampleRead; // Total number of samples read since the grain is playing. Resets to zero zhen looping in freeze mode
+    uint16_t length; // Number of samples in the grain
+    uint8_t direction; // Playing direction 1 is forward, -1 is backward. TODO : to implement
+    bool freeze; // In freeze mode, the voice does not go back to idle, the grain loops. TODO : cannot loop forever since the bufferis only 3s or 4s
+    State state;
+  };
+
+  class EffectGranular : public AudioStream
+  {
+  public:
+    EffectGranular() : AudioStream(1, inputQueueArray) {
+      memset(this->circularBlockBuffer, 0, sizeof(this->circularBlockBuffer));
+      this->writeIndex = 0;
+      this->voices = 1;
+    }
+
+    void Delay(uint16_t milliseconds) {
+      if (milliseconds < 0.0f) milliseconds = 0.0f;
+      this->delayLength = milliseconds;
+      this->active = true;
+
+      for (uint8_t i = 0; i < this->voices; i++)
+      {
+        this->grains[i].state = State::Idle;
+      }
+    }
+    void Disable() {
+      this->active = false;
+    }
+    virtual void update(void);
+    void FeedBuffer();
+    void ReadBuffer(audio_block_t *block, Grain* grain, uint16_t length);
+
+  private:
+    Grain grains[1];
+    uint16_t delayLength;
+    uint16_t writeIndex;
+    int16_t circularBlockBuffer[GRANULAR_BUFFER_LENGTH];
+    audio_block_t *inputQueueArray[1];
+    uint8_t voices;
+  };
+}
 
 #endif // __DROP_GRANULAR_HPP___
