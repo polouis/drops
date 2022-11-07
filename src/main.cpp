@@ -34,15 +34,10 @@ void buttonHandler(bool on)
 {
   if (on)
   {
-    //float msec = 25.0 + (knobDelayLength * 975.0);
-    Serial.print("Effect on with delay = ");
-    Serial.print(delayLength);
-    Serial.println("ms");
-   	granular.Delay(delayLength);
+   	granular.Enable();
   }
   else
   {
-    Serial.println("Granular off");
     granular.Disable();
   }
 }
@@ -91,6 +86,8 @@ void setup() {
   encoderDelay.RegisterHandler(encoderDelayHandler);
   buttonDelay.Init(PIN_BUTTON_DELAY);
   buttonDelay.RegisterHandler(buttonDelayHandler);
+
+  granular.Disable();
 
   sgtl5000_1.enable();
   sgtl5000_1.volume(0.9);

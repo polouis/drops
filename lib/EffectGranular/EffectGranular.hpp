@@ -38,16 +38,22 @@ namespace drop
     void Delay(uint16_t milliseconds) {
       if (milliseconds < 0.0f) milliseconds = 0.0f;
       this->delayLength = milliseconds;
-      this->active = true;
 
       for (uint8_t i = 0; i < this->voices; i++)
       {
         this->grains[i].state = State::Idle;
       }
     }
+
+    void Enable()
+    {
+      this->active = true;
+    }
+
     void Disable() {
       this->active = false;
     }
+    
     virtual void update(void);
     void FeedBuffer();
     void ReadBuffer(audio_block_t *block, Grain* grain, uint16_t length);
