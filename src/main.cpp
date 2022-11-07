@@ -1,15 +1,3 @@
-// Granular Effect Example - Pitch shift or freeze sound
-//
-// This example is meant to be used with 3 buttons (pin 0,
-// 1, 2) and 2 knobs (pins 16/A2, 17/A3), which are present
-// on the audio tutorial kit.
-//   https://www.pjrc.com/store/audio_tutorial_kit.html
-//
-// Data files to put on your SD card can be downloaded here:
-//   http://www.pjrc.com/teensy/td_libs_AudioDataFiles.html
-//
-// This example code is in the public domain.
-
 #include <Audio.h>
 #include <SPI.h>
 
@@ -26,7 +14,6 @@ drop::Encoder encoderDelay;
 
 uint16_t delayLength = 300;
 
-//float knobDelayLength = 0.0f;
 float knobMix = 0.0f;
 elapsedMillis elapsed = 0;
 
