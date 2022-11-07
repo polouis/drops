@@ -1,17 +1,17 @@
 #include <Bounce.h>
 #include <Wire.h>
 
-#include <OnOffButton.hpp>
+#include <ControlOnOffButton.hpp>
 
 namespace drop
 {
-  void OnOffButton::Init(uint8_t pinNumber)
+  void ControlOnOffButton::Init(uint8_t pinNumber)
   {
     this->button = new Bounce(pinNumber, 15);
     pinMode(pinNumber, INPUT_PULLUP);
   }
 
-  void OnOffButton::Update()
+  void ControlOnOffButton::Update()
   {
     this->button->update();
 
@@ -21,7 +21,7 @@ namespace drop
     }
   }
 
-  void OnOffButton::RegisterHandler(OnOffButtonEventHandler eventHandler) {
+  void ControlOnOffButton::RegisterHandler(ControlOnOffButtonEventHandler eventHandler) {
     this->eventHandler = eventHandler;
   }
 }

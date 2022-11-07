@@ -2,46 +2,48 @@
 #include <SPI.h>
 
 #include "AudioRouting.hpp"
-#include <OnOffButton.hpp>
-#include <Encoder.hpp>
+#include <ControlOnOffButton.hpp>
+#include <ControlEncoder.hpp>
 #include <PinMapping.hpp>
 
-drop::OnOffButton button;
-drop::Encoder encoderButton;
+drop::ControlOnOffButton button;
+drop::ControlEncoder encoderButton;
 
-drop::OnOffButton buttonDelay;
-drop::Encoder encoderDelay;
+drop::ControlOnOffButton buttonDelay;
+drop::ControlEncoder encoderDelay;
 
 uint16_t delayLength = 300;
 
 float knobMix = 0.0f;
 elapsedMillis elapsed = 0;
 
-void buttonHandler(bool on)
+void buttonEnableHandler(bool on)
 {
   if (on)
   {
+    Serial.println("Effect on");
    	granular.Enable();
   }
   else
   {
+    Serial.println("Effect off");
     granular.Disable();
   }
 }
 
-void buttonDelayHandler(bool on)
+void buttonHandler(bool on)
 {
   if (on)
   {
-    Serial.println("Effect delay on");
+    Serial.println("Button on");
   }
   else
   {
-    Serial.println("Effect delay off");
+    Serial.println("Button off");
   }
 }
 
-void encoderButtonHandler(int8_t direction)
+void encoderGrainLengthHandler(int8_t direction)
 {
   delayLength += direction * 10;
   if (delayLength < 50) {
@@ -53,9 +55,9 @@ void encoderButtonHandler(int8_t direction)
  	granular.Delay(delayLength);
 }
 
-void encoderDelayHandler(int8_t direction)
+void encoderHandler(int8_t direction)
 {
-  Serial.print("Encoder delay direction = ");
+  Serial.print("Encoder direction = ");
   Serial.print(direction);
   Serial.println();
 }
@@ -65,14 +67,14 @@ void setup() {
   AudioMemory(10);
 
   button.Init(PIN_BUTTON_GRANULAR);
-  button.RegisterHandler(buttonHandler);
+  button.RegisterHandler(buttonEnableHandler);
   encoderButton.Init(PIN_ENCODER_GRANULAR_1, PIN_ENCODER_GRANULAR_2);
-  encoderButton.RegisterHandler(encoderButtonHandler);
+  encoderButton.RegisterHandler(encoderGrainLengthHandler);
 
   encoderDelay.Init(PIN_ENCODER_DELAY_1, PIN_ENCODER_DELAY_2);
-  encoderDelay.RegisterHandler(encoderDelayHandler);
+  encoderDelay.RegisterHandler(encoderHandler);
   buttonDelay.Init(PIN_BUTTON_DELAY);
-  buttonDelay.RegisterHandler(buttonDelayHandler);
+  buttonDelay.RegisterHandler(buttonHandler);
 
   granular.Disable();
 

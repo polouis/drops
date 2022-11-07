@@ -12,8 +12,6 @@ namespace drop
 
     this->FeedBuffer();
 
-    // TODO with this architecture, sample is triggered on a time % 128. I should detect
-
     for (uint8_t i = 0; i < this->voices; i++) {
       if (this->grains[i].state == State::Idle)
       {

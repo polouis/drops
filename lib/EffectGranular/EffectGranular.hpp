@@ -1,5 +1,6 @@
-#ifndef __DROP_GRANULAR_HPP___
-#define __DROP_GRANULAR_HPP___
+#ifndef __EFFECT_GRANULAR_HPP___
+#define __EFFECT_GRANULAR_HPP___
+
 #include "Arduino.h"
 #include "AudioStream.h"
 #include "utility/dspinst.h"
@@ -68,4 +69,4 @@ namespace drop
   };
 }
 
-#endif // __DROP_GRANULAR_HPP___
+#endif // __EFFECT_GRANULAR_HPP___

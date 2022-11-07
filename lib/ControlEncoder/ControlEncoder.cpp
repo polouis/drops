@@ -1,16 +1,16 @@
 #include <Bounce.h>
 #include <Wire.h>
 
-#include <Encoder.hpp>
+#include <ControlEncoder.hpp>
 
 namespace drop
 {
-  void Encoder::Init(uint8_t pinEncoder1, uint8_t pinEncoder2)
+  void ControlEncoder::Init(uint8_t pinEncoder1, uint8_t pinEncoder2)
   {
     this->rotEnc = new ::Encoder(pinEncoder1, pinEncoder2);
   }
 
-  void Encoder::Update()
+  void ControlEncoder::Update()
   {
     if (this->elapsed < this->debounce)
     {
@@ -28,7 +28,7 @@ namespace drop
     }
   }
 
-  void Encoder::RegisterHandler(EncoderButtonEventHandler eventHandler) {
+  void ControlEncoder::RegisterHandler(ControlEncoderEventHandler eventHandler) {
     this->eventHandler = eventHandler;
   }
 }
