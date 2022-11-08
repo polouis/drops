@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <AudioStream.h>
 #include <utility/dspinst.h>
-#include <InterfaceEnvelope.hpp>
+//#include <InterfaceEnvelope.hpp>
 #include <EnvelopeTriangle.hpp>
 #include <EnvelopeIdentity.hpp>
 
@@ -13,6 +13,12 @@
 
 namespace drop
 {
+  enum Envelope
+  {
+    Identity,
+    Triangle,
+  };
+
   enum State
   {
     Idle,
@@ -58,18 +64,20 @@ namespace drop
       this->active = false;
     }
     
-    virtual void update(void);
+    void SetEnvelope(InterfaceEnvelope *envelope);
     void FeedBuffer();
     void ReadBuffer(audio_block_t *block, Grain* grain, uint16_t length);
 
   private:
+    virtual void update(void) override;
+
     Grain grains[1];
     uint16_t delayLength;
     uint16_t writeIndex;
     int16_t circularBlockBuffer[GRANULAR_BUFFER_LENGTH];
     audio_block_t *inputQueueArray[1];
     uint8_t voices;
-    InterfaceEnvelope *envelope = new EnvelopeTriangle();
+    InterfaceEnvelope *envelope = NULL;
   };
 }
 

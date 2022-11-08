@@ -1,7 +1,11 @@
 #include <Audio.h>
 #include <SPI.h>
 
-#include "AudioRouting.hpp"
+
+#include <AudioRouting.hpp>
+#include <InterfaceEnvelope.hpp>
+#include <EnvelopeIdentity.hpp>
+#include <EnvelopeTriangle.hpp>
 #include <ControlOnOffButton.hpp>
 #include <ControlEncoder.hpp>
 #include <PinMapping.hpp>
@@ -16,6 +20,10 @@ uint16_t delayLength = 300;
 
 float knobMix = 0.0f;
 elapsedMillis elapsed = 0;
+
+drop::InterfaceEnvelope *envelopes[2] = { new drop::EnvelopeIdentity(), new drop::EnvelopeTriangle() };
+uint8_t envelopeCurrent = 0;
+uint8_t envelopeCount = sizeof(envelopes) / sizeof(drop::InterfaceEnvelope *);
 
 void buttonEnableHandler(bool on)
 {
@@ -57,8 +65,11 @@ void encoderGrainLengthHandler(int8_t direction)
 
 void encoderHandler(int8_t direction)
 {
-  Serial.print("Encoder direction = ");
-  Serial.print(direction);
+  envelopeCurrent = (envelopeCurrent + direction) % envelopeCount;
+  drop::InterfaceEnvelope *envelope = envelopes[envelopeCurrent];
+  granular.SetEnvelope(envelope);
+  Serial.print("Envelope = ");
+  Serial.print(envelope->GetName());
   Serial.println();
 }
 
@@ -76,6 +87,7 @@ void setup() {
   buttonDelay.Init(PIN_BUTTON_DELAY);
   buttonDelay.RegisterHandler(buttonHandler);
 
+  granular.Delay(300);
   granular.Disable();
 
   sgtl5000_1.enable();
