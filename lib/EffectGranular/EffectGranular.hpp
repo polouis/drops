@@ -1,9 +1,12 @@
 #ifndef __EFFECT_GRANULAR_HPP___
 #define __EFFECT_GRANULAR_HPP___
 
-#include "Arduino.h"
-#include "AudioStream.h"
-#include "utility/dspinst.h"
+#include <Arduino.h>
+#include <AudioStream.h>
+#include <utility/dspinst.h>
+#include <InterfaceEnvelope.hpp>
+#include <EnvelopeTriangle.hpp>
+#include <EnvelopeIdentity.hpp>
 
 #define GRANULAR_BUFFER_BLOCK_COUNT 1000
 #define GRANULAR_BUFFER_LENGTH (AUDIO_BLOCK_SAMPLES * GRANULAR_BUFFER_BLOCK_COUNT)
@@ -66,6 +69,7 @@ namespace drop
     int16_t circularBlockBuffer[GRANULAR_BUFFER_LENGTH];
     audio_block_t *inputQueueArray[1];
     uint8_t voices;
+    InterfaceEnvelope *envelope = new EnvelopeTriangle();
   };
 }
 

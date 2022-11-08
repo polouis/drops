@@ -9,4 +9,4 @@ namespace drop
   };
 }
 
-#endif
+#endif // __INTERFACE_CONTROL_HPP__

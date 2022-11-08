@@ -31,6 +31,12 @@ namespace drop
         
         uint16_t samplesToRead = min(AUDIO_BLOCK_SAMPLES, this->grains[i].length - this->grains[i].sampleRead);
         this->ReadBuffer(outputBlock, &this->grains[i], samplesToRead);
+
+        for (uint32_t j = 0; j < AUDIO_BLOCK_SAMPLES; j++)
+        {
+          outputBlock->data[j] = this->envelope->Compute(outputBlock->data[j], this->grains[i].sampleRead + j, this->grains[i].length);
+        }
+
         this->grains[i].sampleRead += samplesToRead;
         if (this->grains[i].sampleRead >= this->grains[i].length)
         {
