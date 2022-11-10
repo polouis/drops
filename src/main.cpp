@@ -16,13 +16,13 @@ drop::ControlEncoder encoderButton;
 drop::ControlOnOffButton buttonDelay;
 drop::ControlEncoder encoderDelay;
 
-uint16_t delayLength = 300;
+uint16_t intervalLength = 1000;
 
 float knobMix = 0.0f;
 elapsedMillis elapsed = 0;
 
 drop::InterfaceEnvelope *envelopes[2] = { new drop::EnvelopeIdentity(), new drop::EnvelopeTriangle() };
-uint8_t envelopeCurrent = 0;
+int8_t envelopeCurrent = 0;
 uint8_t envelopeCount = sizeof(envelopes) / sizeof(drop::InterfaceEnvelope *);
 
 void buttonEnableHandler(bool on)
@@ -51,21 +51,21 @@ void buttonHandler(bool on)
   }
 }
 
-void encoderGrainLengthHandler(int8_t direction)
+void encoderIntervalLengthHandler(int8_t direction)
 {
-  delayLength += direction * 10;
-  if (delayLength < 50) {
-    delayLength = 50;
+  intervalLength += direction * 10;
+  if (intervalLength < 50) {
+    intervalLength = 50;
   }
-  Serial.print("Delay length = ");
-  Serial.print(delayLength);
+  Serial.print("Interval length = ");
+  Serial.print(intervalLength);
   Serial.println();
- 	granular.Delay(delayLength);
+ 	granular.SetInterval(intervalLength);
 }
 
-void encoderHandler(int8_t direction)
+void encoderEnvelopeHandler(int8_t direction)
 {
-  envelopeCurrent = (envelopeCurrent + direction) % envelopeCount;
+  envelopeCurrent = abs(envelopeCurrent + direction) % envelopeCount;
   drop::InterfaceEnvelope *envelope = envelopes[envelopeCurrent];
   granular.SetEnvelope(envelope);
   Serial.print("Envelope = ");
@@ -80,15 +80,21 @@ void setup() {
   button.Init(PIN_BUTTON_GRANULAR);
   button.RegisterHandler(buttonEnableHandler);
   encoderButton.Init(PIN_ENCODER_GRANULAR_1, PIN_ENCODER_GRANULAR_2);
-  encoderButton.RegisterHandler(encoderGrainLengthHandler);
+  encoderButton.RegisterHandler(encoderIntervalLengthHandler);
 
   encoderDelay.Init(PIN_ENCODER_DELAY_1, PIN_ENCODER_DELAY_2);
-  encoderDelay.RegisterHandler(encoderHandler);
+  encoderDelay.RegisterHandler(encoderEnvelopeHandler);
   buttonDelay.Init(PIN_BUTTON_DELAY);
   buttonDelay.RegisterHandler(buttonHandler);
 
-  granular.Delay(300);
+  granular.SetInterval(intervalLength);
+  granular.SetGrainLength(400);
   granular.Disable();
+
+  mixerGranular.gain(0, 1.0);
+  mixerGranular.gain(1, 1.0);
+  mixerGranular.gain(2, 1.0);
+  mixerGranular.gain(3, 1.0);
 
   sgtl5000_1.enable();
   sgtl5000_1.volume(0.9);
@@ -111,6 +117,6 @@ void loop() {
     //Serial.print("Audio CPU usage = "); Serial.println(AudioProcessorUsage());
   }
 
-  mixer1.gain(0, 1.0 - knobMix);
-  mixer1.gain(1, knobMix);
+  mixer.gain(0, 1.0 - knobMix);
+  mixer.gain(1, knobMix);
 }

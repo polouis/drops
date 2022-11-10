@@ -12,16 +12,14 @@ namespace drop
 
     this->FeedBuffer();
 
+    uint16_t period = 100;
     for (uint8_t i = 0; i < this->voices; i++) {
-      if (this->grains[i].state == State::Idle)
+      //Serial.print(this->elapsedTrigger);Serial.print(" i:");Serial.print(i);Serial.print(" state:");Serial.println(this->grains[i].state);
+      if (this->grains[i].state == State::Idle && this->elapsedTrigger >= period)
       {
-        this->grains[i].state = State::Playing;
-        this->grains[i].direction = 1;
-        this->grains[i].length = this->delayLength * AUDIO_SAMPLE_RATE_EXACT / 1000.0f;
-        this->grains[i].startIndex = (this->writeIndex - this->grains[i].length) % GRANULAR_BUFFER_LENGTH;
-        this->grains[i].sampleRead = 0;
-        //Serial.print("start playing "); Serial.println(this->grains[i].length);
-        //Serial.print("start index "); Serial.println(this->grains[i].startIndex);
+        this->PlayGrain(&this->grains[i]);
+        //Serial.print("start playing voice:");Serial.print(i);Serial.print(" t:");Serial.println(this->elapsedTrigger);
+        this->elapsedTrigger = 0;
       }
 
       if (this->grains[i].state == State::Playing)
@@ -29,39 +27,38 @@ namespace drop
         audio_block_t* outputBlock = allocate();
         if (!outputBlock) return;
         
-        uint16_t samplesToRead = min(AUDIO_BLOCK_SAMPLES, this->grains[i].length - this->grains[i].sampleRead);
+        uint16_t samplesToRead = min(AUDIO_BLOCK_SAMPLES, this->grainSampleLength - this->grains[i].sampleRead);
         this->ReadBuffer(outputBlock, &this->grains[i], samplesToRead);
 
         if (this->envelope != NULL)
         {
-          for (uint32_t j = 0; j < AUDIO_BLOCK_SAMPLES; j++)
+          for (uint8_t j = 0; j < AUDIO_BLOCK_SAMPLES; j++)
           {
-            outputBlock->data[j] = this->envelope->Compute(outputBlock->data[j], this->grains[i].sampleRead + j, this->grains[i].length);
+            outputBlock->data[j] = this->envelope->Compute(outputBlock->data[j], this->grains[i].sampleRead + j, this->grainSampleLength);
           }
         }
-
         this->grains[i].sampleRead += samplesToRead;
-        if (this->grains[i].sampleRead >= this->grains[i].length)
+
+        if (this->grains[i].sampleRead >= this->grainSampleLength)
         {
-          this->grains[i].state = State::Skip;
-          //Serial.println("finished playing");
+          this->grains[i].state = State::Idle;
+          //Serial.print("stopping i:");Serial.println(i);
           this->grains[i].sampleRead = 0;
         }
 
         transmit(outputBlock, 0);
         release(outputBlock);
       }
-      else if (this->grains[i].state == State::Skip)
-      {
-        this->grains[i].sampleRead += AUDIO_BLOCK_SAMPLES;
-        if (this->grains[i].sampleRead >= this->grains[i].length)
-        {
-          this->grains[i].state = State::Idle;
-        }
-      }
     }
   }
 
+  void EffectGranular::PlayGrain(Grain *grain)
+  {
+    grain->state = State::Playing;
+    grain->direction = 1;
+    grain->startIndex = (this->writeIndex - this->intervalSampleLength + random(this->intervalSampleLength)) % GRANULAR_BUFFER_LENGTH;
+    grain->sampleRead = 0;
+  }
 
   void EffectGranular::SetEnvelope(InterfaceEnvelope* envelope)
   {
