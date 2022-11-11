@@ -46,7 +46,7 @@ namespace drop
           this->grains[i].sampleRead = 0;
         }
 
-        transmit(outputBlock, 0);
+        transmit(outputBlock, i);
         release(outputBlock);
       }
     }
@@ -56,7 +56,8 @@ namespace drop
   {
     grain->state = State::Playing;
     grain->direction = 1;
-    grain->startIndex = (this->writeIndex - this->intervalSampleLength + random(this->intervalSampleLength)) % GRANULAR_BUFFER_LENGTH;
+    uint32_t offset = random(this->intervalSampleLength);
+    grain->startIndex = (this->writeIndex - this->intervalSampleLength + offset) % GRANULAR_BUFFER_LENGTH;
     grain->sampleRead = 0;
   }
 
