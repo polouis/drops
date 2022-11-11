@@ -88,7 +88,7 @@ void setup() {
   buttonDelay.RegisterHandler(buttonHandler);
 
   granular.SetInterval(intervalLength);
-  granular.SetGrainLength(400);
+  granular.SetGrainLength(500);
   granular.Disable();
 
   mixerGranular.gain(0, 1.0);
@@ -117,6 +117,6 @@ void loop() {
     //Serial.print("Audio CPU usage = "); Serial.println(AudioProcessorUsage());
   }
 
-  mixer.gain(0, 1.0 - knobMix);
-  mixer.gain(1, knobMix);
+  mixerMain.gain(0, 1.0 - knobMix);
+  mixerMain.gain(1, knobMix);
 }
