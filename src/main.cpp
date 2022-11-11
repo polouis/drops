@@ -111,10 +111,10 @@ void loop() {
   //knobDelayLength = (float)analogRead(A2) / 1023.0;
   knobMix = (float)analogRead(A3) / 1023.0;
 
-  if (elapsed > 1000) {
+  if (elapsed > 5000) {
     elapsed = 0;
-    //Serial.print("Balance = "); Serial.println(knobMix);
-    //Serial.print("Audio CPU usage = "); Serial.println(AudioProcessorUsage());
+    Serial.print("CPU usage = "); Serial.println(AudioProcessorUsage());
+    Serial.print("mem usage = "); Serial.println(AudioMemoryUsage());
   }
 
   mixerMain.gain(0, 1.0 - knobMix);
