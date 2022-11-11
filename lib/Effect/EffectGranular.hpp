@@ -8,8 +8,8 @@
 #include <EnvelopeTriangle.hpp>
 #include <EnvelopeIdentity.hpp>
 
-#define GRANULAR_BUFFER_BLOCK_COUNT 1000
-#define GRANULAR_BUFFER_LENGTH (AUDIO_BLOCK_SAMPLES * GRANULAR_BUFFER_BLOCK_COUNT)
+
+#define GRANULAR_BUFFER_LENGTH (3 * 44100) // 3 seconds mono
 
 namespace drop
 {
@@ -38,9 +38,14 @@ namespace drop
   {
   public:
     EffectGranular() : AudioStream(1, inputQueueArray) {
-      memset(this->circularBlockBuffer, 0, sizeof(this->circularBlockBuffer));
       this->writeIndex = 0;
       this->voices = 4;
+      this->circularBlockBuffer = (int16_t*)malloc(sizeof(int16_t) * GRANULAR_BUFFER_LENGTH);
+      if (this->circularBlockBuffer == NULL)
+      {
+        Serial.print("Failed to allocate : "); Serial.println(sizeof(int16_t) * GRANULAR_BUFFER_LENGTH);
+      }
+      memset(this->circularBlockBuffer, 0, sizeof(int16_t) * GRANULAR_BUFFER_LENGTH);
     }
 
     /*
@@ -95,7 +100,7 @@ namespace drop
     uint16_t intervalMilliLength;
     uint16_t intervalSampleLength;
     uint16_t writeIndex;
-    int16_t circularBlockBuffer[GRANULAR_BUFFER_LENGTH];
+    int16_t *circularBlockBuffer;
     audio_block_t *inputQueueArray[1];
     uint8_t voices;
     uint16_t grainSampleLength = 0;
