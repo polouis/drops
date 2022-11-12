@@ -52,10 +52,9 @@ namespace drop
     }
   }
 
-  void EffectGranular::PlayGrain(Grain *grain)
+  void EffectGranular::PlayGrain(PlayContext *grain)
   {
     grain->state = State::Playing;
-    grain->direction = 1;
     uint32_t offset = random(this->intervalSampleLength);
     grain->startIndex = (this->writeIndex - this->intervalSampleLength + offset) % GRANULAR_BUFFER_LENGTH;
     grain->sampleRead = 0;
@@ -87,7 +86,7 @@ namespace drop
     release(inputBlock);
   }
 
-  void EffectGranular::ReadBuffer(audio_block_t *block, Grain* grain, uint16_t length)
+  void EffectGranular::ReadBuffer(audio_block_t *block, PlayContext* grain, uint16_t length)
   {
     for (uint16_t i = 0; i < AUDIO_BLOCK_SAMPLES; i++)
     {
