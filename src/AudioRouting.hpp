@@ -1,11 +1,7 @@
 #include <Audio.h>
 #include <EffectGranular.hpp>
 
-#include <Audio.h>
-#include <Wire.h>
-#include <SPI.h>
-#include <SD.h>
-#include <SerialFlash.h>
+#include "AudioStream.h"
 
 // GUItool: begin automatically generated code
 AudioInputI2S            i2sInput;           //xy=163.28571319580078,338
@@ -14,10 +10,10 @@ AudioMixer4              mixerMain;         //xy=496.28570556640625,349.57138061
 AudioMixer4              mixerGranular;  //xy=496.28570556640625,349.5713806152344
 AudioOutputI2S           i2sOutput;           //xy=744.8570556640625,356
 
-
 // Dry
 AudioConnection          patchCord1(i2sInput, 0, mixerMain, 0);
 
+// Effect
 AudioConnection          patchCord4(i2sInput, 0, granular, 0);
 AudioConnection          patchCord5(granular, 0, mixerGranular, 0);
 AudioConnection          patchCord6(granular, 1, mixerGranular, 1);
