@@ -1,8 +1,9 @@
+#include <BufferCircular.hpp>
 #include <Audio.h>
 #include <SPI.h>
 
-
 #include <AudioRouting.hpp>
+#include <BufferCircular.hpp>
 #include <InterfaceEnvelope.hpp>
 #include <EnvelopeIdentity.hpp>
 #include <EnvelopeTriangle.hpp>
@@ -17,10 +18,12 @@ drop::ControlOnOffButton buttonDelay;
 drop::ControlEncoder encoderDelay;
 
 uint16_t intervalLength = 1000;
+uint16_t grainLength = 250;
 
 float knobMix = 0.0f;
 elapsedMillis elapsed = 0;
 
+drop::BufferCircular *buffer;
 drop::InterfaceEnvelope *envelopes[2] = { new drop::EnvelopeIdentity(), new drop::EnvelopeTriangle() };
 int8_t envelopeCurrent = 0;
 uint8_t envelopeCount = sizeof(envelopes) / sizeof(drop::InterfaceEnvelope *);
@@ -87,8 +90,10 @@ void setup() {
   buttonDelay.Init(PIN_BUTTON_DELAY);
   buttonDelay.RegisterHandler(buttonHandler);
 
+  buffer = new drop::BufferCircular();
+  granular.setBuffer(buffer);
   granular.SetInterval(intervalLength);
-  granular.SetGrainLength(500);
+  granular.SetGrainLength(grainLength);
   granular.Disable();
 
   mixerGranular.gain(0, 1.0);

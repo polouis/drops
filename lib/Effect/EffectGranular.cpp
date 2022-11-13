@@ -10,40 +10,47 @@ namespace drop
       return;
     }
 
-    this->FeedBuffer();
+    audio_block_t* inputBlock = receiveReadOnly();
+    if (inputBlock == NULL) {
+      return;
+    }
+    this->buffer->FeedBuffer(inputBlock);
+    release(inputBlock);
 
     uint16_t period = 100;
     for (uint8_t i = 0; i < this->voices; i++) {
       //Serial.print(this->elapsedTrigger);Serial.print(" i:");Serial.print(i);Serial.print(" state:");Serial.println(this->grains[i].state);
-      if (this->grains[i].state == State::Idle && this->elapsedTrigger >= period)
+      if (this->playContexts[i].state == State::Idle && this->elapsedTrigger >= period)
       {
-        this->PlayGrain(&this->grains[i]);
-        //Serial.print("start playing voice:");Serial.print(i);Serial.print(" t:");Serial.println(this->elapsedTrigger);
+        Serial.print("start playing voice:");Serial.print(i);Serial.print(" t:");Serial.println(this->elapsedTrigger);
+        this->PlayGrain(&this->playContexts[i]);
         this->elapsedTrigger = 0;
       }
 
-      if (this->grains[i].state == State::Playing)
+      if (this->playContexts[i].state == State::Playing)
       {
         audio_block_t* outputBlock = allocate();
         if (!outputBlock) return;
         
-        uint16_t samplesToRead = min(AUDIO_BLOCK_SAMPLES, this->grainSampleLength - this->grains[i].sampleRead);
-        this->ReadBuffer(outputBlock, &this->grains[i], samplesToRead);
+        uint32_t offset = - this->intervalSampleLength + this->playContexts[i].readSamples;
+        int32_t samplesToRead = this->grainSampleLength - this->playContexts[i].readSamples;
+        samplesToRead = min(AUDIO_BLOCK_SAMPLES, samplesToRead);
+        this->buffer->ReadBuffer(outputBlock, this->playContexts[i].handler, offset, samplesToRead);
 
         if (this->envelope != NULL)
         {
           for (uint8_t j = 0; j < AUDIO_BLOCK_SAMPLES; j++)
           {
-            outputBlock->data[j] = this->envelope->Compute(outputBlock->data[j], this->grains[i].sampleRead + j, this->grainSampleLength);
+            outputBlock->data[j] = this->envelope->Compute(outputBlock->data[j], this->playContexts[i].readSamples + j, this->grainSampleLength);
           }
         }
-        this->grains[i].sampleRead += samplesToRead;
+        this->playContexts[i].readSamples += samplesToRead;
 
-        if (this->grains[i].sampleRead >= this->grainSampleLength)
+        if (this->playContexts[i].readSamples >= this->grainSampleLength)
         {
-          this->grains[i].state = State::Idle;
-          //Serial.print("stopping i:");Serial.println(i);
-          this->grains[i].sampleRead = 0;
+          this->playContexts[i].state = State::Idle;
+          Serial.print("stopping i:");Serial.println(i);
+          this->playContexts[i].readSamples = 0;
         }
 
         transmit(outputBlock, i);
@@ -52,54 +59,17 @@ namespace drop
     }
   }
 
-  void EffectGranular::PlayGrain(PlayContext *grain)
+  void EffectGranular::PlayGrain(PlayContext *context)
   {
-    grain->state = State::Playing;
-    uint32_t offset = random(this->intervalSampleLength);
-    grain->startIndex = (this->writeIndex - this->intervalSampleLength + offset) % GRANULAR_BUFFER_LENGTH;
-    grain->sampleRead = 0;
+    context->readSamples = 0;
+    context->state = State::Playing;
+    context->delaySamples = random(this->intervalSampleLength);
+    context->handler = this->buffer->CreateHandler();
   }
 
   void EffectGranular::SetEnvelope(InterfaceEnvelope* envelope)
   {
     this->envelope = envelope;
-  }
-
-  // BUFFER SECTION
-  void EffectGranular::FeedBuffer()
-  {
-    if (this->active == false) {
-      return;
-    }
-
-    audio_block_t* inputBlock = receiveReadOnly();
-    if (inputBlock == NULL) {
-      return;
-    }
-
-    memcpy(&this->circularBlockBuffer[this->writeIndex], inputBlock->data, AUDIO_BLOCK_SAMPLES * sizeof(uint16_t));
-
-    this->writeIndex += AUDIO_BLOCK_SAMPLES;
-    if (this->writeIndex >= GRANULAR_BUFFER_LENGTH) {
-      this->writeIndex = 0;
-    }
-    release(inputBlock);
-  }
-
-  void EffectGranular::ReadBuffer(audio_block_t *block, PlayContext* grain, uint16_t length)
-  {
-    for (uint16_t i = 0; i < AUDIO_BLOCK_SAMPLES; i++)
-    {
-      uint16_t readIndex = (grain->startIndex + grain->sampleRead + i) % GRANULAR_BUFFER_LENGTH;
-      if (i >= length)
-      {
-        block->data[i] = 0;
-      }
-      else
-      {
-        block->data[i] = this->circularBlockBuffer[readIndex];
-      }
-    }
   }
 
 }

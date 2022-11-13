@@ -4,12 +4,9 @@
 #include <Arduino.h>
 #include <AudioStream.h>
 #include <utility/dspinst.h>
-//#include <InterfaceEnvelope.hpp>
+#include <InterfaceBuffer.hpp>
 #include <EnvelopeTriangle.hpp>
 #include <EnvelopeIdentity.hpp>
-
-
-#define GRANULAR_BUFFER_LENGTH (3 * 44100) // 3 seconds mono
 
 namespace drop
 {
@@ -27,8 +24,10 @@ namespace drop
 
   struct PlayContext // playing context
   {
-    uint16_t startIndex; // Start index of the grain in the circular Buffer
-    uint16_t sampleRead; // Total number of samples read since the grain is playing. Resets to zero zhen looping in freeze mode
+    //uint16_t startIndex; // Start index of the grain in the circular Buffer
+    InterfaceBufferHandler *handler;
+    uint32_t delaySamples; // offset from window end
+    uint32_t readSamples; // Total number of samples read since the grain is playing. Resets to zero zhen looping in freeze mode
     State state;
   };
 
@@ -36,15 +35,8 @@ namespace drop
   {
   public:
     EffectGranular() : AudioStream(1, inputQueueArray) {
-      this->writeIndex = 0;
       this->voices = 4;
       this->direction = 1;
-      this->circularBlockBuffer = (int16_t*)malloc(sizeof(int16_t) * GRANULAR_BUFFER_LENGTH);
-      if (this->circularBlockBuffer == NULL)
-      {
-        Serial.print("Failed to allocate : "); Serial.println(sizeof(int16_t) * GRANULAR_BUFFER_LENGTH);
-      }
-      memset(this->circularBlockBuffer, 0, sizeof(int16_t) * GRANULAR_BUFFER_LENGTH);
     }
 
     /*
@@ -58,7 +50,7 @@ namespace drop
 
       for (uint8_t i = 0; i < this->voices; i++)
       {
-        this->grains[i].state = State::Idle;
+        this->playContexts[i].state = State::Idle;
       }
       this->elapsedTrigger = 0;
     }
@@ -86,27 +78,28 @@ namespace drop
     /*
      * BUFFER
      */
-    void FeedBuffer();
-    void ReadBuffer(audio_block_t *block, PlayContext* grain, uint16_t length);
+    void setBuffer(InterfaceBuffer *buffer) {
+      this->buffer = buffer;
+    }
 
   private:
     virtual void update(void) override;
     void PlayGrain(PlayContext *grain);
     // Effect parameters
     elapsedMillis elapsedTrigger;
-    PlayContext grains[4];
+    PlayContext playContexts[4];
     uint16_t intervalMilliLength;
     uint16_t intervalSampleLength;
     uint8_t voices;
-    uint16_t grainSampleLength = 0;
+    uint32_t grainSampleLength = 0;
     InterfaceEnvelope *envelope = NULL;
     uint8_t direction; // Playing direction 1 is forward, -1 is backward. TODO : to implement
     bool freeze; // In freeze mode, the voice does not go back to idle, the grain loops. TODO : cannot loop forever since the bufferis only 3s or 4s
-    // Buffer
-    int16_t *circularBlockBuffer;
-    uint16_t writeIndex;
     // Needed by Audio lib
     audio_block_t *inputQueueArray[1];
+
+    // Buffer
+    InterfaceBuffer *buffer = NULL;
   };
 }
 
