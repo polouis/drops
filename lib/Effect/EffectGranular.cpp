@@ -5,7 +5,7 @@ namespace drop
 {
   void EffectGranular::update(void)
   {
-    if (this->active == false)
+    if (this->enabled == false)
     {
       return;
     }
@@ -22,7 +22,7 @@ namespace drop
       //Serial.print(this->elapsedTrigger);Serial.print(" i:");Serial.print(i);Serial.print(" state:");Serial.println(this->grains[i].state);
       if (this->playContexts[i].state == State::Idle && this->elapsedTrigger >= period)
       {
-        Serial.print("start playing voice:");Serial.print(i);Serial.print(" t:");Serial.println(this->elapsedTrigger);
+        //Serial.print("start playing voice:");Serial.print(i);Serial.print(" t:");Serial.println(this->elapsedTrigger);
         this->PlayGrain(&this->playContexts[i]);
         this->elapsedTrigger = 0;
       }
@@ -49,7 +49,7 @@ namespace drop
         if (this->playContexts[i].readSamples >= this->grainSampleLength)
         {
           this->playContexts[i].state = State::Idle;
-          Serial.print("stopping i:");Serial.println(i);
+          //Serial.print("stopping i:");Serial.println(i);
           this->playContexts[i].readSamples = 0;
         }
 

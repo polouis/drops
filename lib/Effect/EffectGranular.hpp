@@ -62,11 +62,11 @@ namespace drop
     void Enable()
     {
       this->elapsedTrigger = 0;
-      this->active = true;
+      this->enabled = true;
     }
 
     void Disable() {
-      this->active = false;
+      this->enabled = false;
     }
 
     /*
@@ -85,8 +85,11 @@ namespace drop
   private:
     virtual void update(void) override;
     void PlayGrain(PlayContext *grain);
-    // Effect parameters
+
+    bool enabled = false;
     elapsedMillis elapsedTrigger;
+
+    // Effect parameters
     PlayContext playContexts[4];
     uint16_t intervalMilliLength;
     uint16_t intervalSampleLength;
@@ -95,6 +98,7 @@ namespace drop
     InterfaceEnvelope *envelope = NULL;
     uint8_t direction; // Playing direction 1 is forward, -1 is backward. TODO : to implement
     bool freeze; // In freeze mode, the voice does not go back to idle, the grain loops. TODO : cannot loop forever since the bufferis only 3s or 4s
+
     // Needed by Audio lib
     audio_block_t *inputQueueArray[1];
 
