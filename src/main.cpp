@@ -1,6 +1,6 @@
-#include <BufferCircular.hpp>
 #include <Audio.h>
-#include <SPI.h>
+#include <Arduino.h>
+#include <MCP23017.h>
 
 #include <AudioRouting.hpp>
 #include <BufferCircular.hpp>
@@ -27,6 +27,9 @@ drop::BufferCircular *buffer;
 drop::InterfaceEnvelope *envelopes[2] = { new drop::EnvelopeIdentity(), new drop::EnvelopeTriangle() };
 int8_t envelopeCurrent = 0;
 uint8_t envelopeCount = sizeof(envelopes) / sizeof(drop::InterfaceEnvelope *);
+
+#define MCP23017_ADDR_1 7
+MCP23017 mcp1;
 
 void buttonEnableHandler(bool on)
 {
@@ -89,6 +92,8 @@ void setup() {
   encoderDelay.RegisterHandler(encoderEnvelopeHandler);
   buttonDelay.Init(PIN_BUTTON_DELAY);
   buttonDelay.RegisterHandler(buttonHandler);
+
+  mcp1.begin(MCP23017_ADDR_1);
 
   buffer = new drop::BufferCircular();
   granular.setBuffer(buffer);
