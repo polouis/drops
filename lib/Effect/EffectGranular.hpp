@@ -7,6 +7,7 @@
 #include <InterfaceBuffer.hpp>
 #include <EnvelopeTriangle.hpp>
 #include <EnvelopeIdentity.hpp>
+#include <Duration.hpp>
 
 namespace drop
 {
@@ -45,8 +46,7 @@ namespace drop
 
     void SetInterval(uint16_t milliseconds) {
       if (milliseconds < 0.0f) milliseconds = 0.0f;
-      this->intervalMilliLength = milliseconds;
-      this->intervalSampleLength = milliseconds * AUDIO_SAMPLE_RATE_EXACT / 1000.0f;
+      this->delayLength.SetMilliseconds(milliseconds);
 
       for (uint8_t i = 0; i < this->voices; i++)
       {
@@ -56,7 +56,7 @@ namespace drop
     }
 
     void SetGrainLength(uint16_t milliseconds) {
-      this->grainSampleLength = milliseconds * AUDIO_SAMPLE_RATE_EXACT / 1000.0f;
+      this->grainLength.SetMilliseconds(milliseconds);
     }
 
     void Enable()
@@ -87,14 +87,15 @@ namespace drop
     void PlayGrain(PlayContext *grain);
 
     bool enabled = false;
-    elapsedMillis elapsedTrigger;
+
+    uint8_t voices;
+    PlayContext playContexts[4];
+    elapsedMillis elapsedTrigger; // Period
 
     // Effect parameters
-    PlayContext playContexts[4];
-    uint16_t intervalMilliLength;
-    uint16_t intervalSampleLength;
-    uint8_t voices;
-    uint32_t grainSampleLength = 0;
+    drop::Duration periodLength;
+    drop::Duration delayLength;
+    drop::Duration grainLength; 
     InterfaceEnvelope *envelope = NULL;
     uint8_t direction; // Playing direction 1 is forward, -1 is backward. TODO : to implement
     bool freeze; // In freeze mode, the voice does not go back to idle, the grain loops. TODO : cannot loop forever since the bufferis only 3s or 4s

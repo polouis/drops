@@ -17,10 +17,10 @@ namespace drop
     this->buffer->FeedBuffer(inputBlock);
     release(inputBlock);
 
-    uint16_t period = 100;
+    uint16_t periodLength = 100;
     for (uint8_t i = 0; i < this->voices; i++) {
       //Serial.print(this->elapsedTrigger);Serial.print(" i:");Serial.print(i);Serial.print(" state:");Serial.println(this->grains[i].state);
-      if (this->playContexts[i].state == State::Idle && this->elapsedTrigger >= period)
+      if (this->playContexts[i].state == State::Idle && this->elapsedTrigger >= periodLength)
       {
         //Serial.print("start playing voice:");Serial.print(i);Serial.print(" t:");Serial.println(this->elapsedTrigger);
         this->PlayGrain(&this->playContexts[i]);
@@ -32,8 +32,8 @@ namespace drop
         audio_block_t* outputBlock = allocate();
         if (!outputBlock) return;
         
-        uint32_t offset = - this->intervalSampleLength + this->playContexts[i].readSamples;
-        int32_t samplesToRead = this->grainSampleLength - this->playContexts[i].readSamples;
+        uint32_t offset = - this->delayLength.GetSamples() + this->playContexts[i].readSamples;
+        int32_t samplesToRead = this->grainLength.GetSamples() - this->playContexts[i].readSamples;
         samplesToRead = min(AUDIO_BLOCK_SAMPLES, samplesToRead);
         this->buffer->ReadBuffer(outputBlock, this->playContexts[i].handler, offset, samplesToRead);
 
@@ -41,12 +41,12 @@ namespace drop
         {
           for (uint8_t j = 0; j < AUDIO_BLOCK_SAMPLES; j++)
           {
-            outputBlock->data[j] = this->envelope->Compute(outputBlock->data[j], this->playContexts[i].readSamples + j, this->grainSampleLength);
+            outputBlock->data[j] = this->envelope->Compute(outputBlock->data[j], this->playContexts[i].readSamples + j, this->grainLength.GetSamples());
           }
         }
         this->playContexts[i].readSamples += samplesToRead;
 
-        if (this->playContexts[i].readSamples >= this->grainSampleLength)
+        if (this->playContexts[i].readSamples >= this->grainLength.GetSamples())
         {
           this->playContexts[i].state = State::Idle;
           //Serial.print("stopping i:");Serial.println(i);
@@ -63,7 +63,7 @@ namespace drop
   {
     context->readSamples = 0;
     context->state = State::Playing;
-    context->delaySamples = random(this->intervalSampleLength);
+    context->delaySamples = random(this->delayLength.GetSamples());
     context->handler = this->buffer->CreateHandler();
   }
 
