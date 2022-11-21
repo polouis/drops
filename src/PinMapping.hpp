@@ -9,4 +9,6 @@
 #define PIN_ENCODER_DELAY_2 5
 #define PIN_BUTTON_DELAY 9
 
+#define MCP23017_ADDR_1 7
+
 #endif // __PIN_MAPPING_HPP__

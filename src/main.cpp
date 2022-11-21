@@ -3,18 +3,19 @@
 #include <MCP23017.h>
 
 #include <AudioRouting.hpp>
+#include <PinMapping.hpp>
+
 #include <BufferCircular.hpp>
 #include <InterfaceEnvelope.hpp>
 #include <EnvelopeIdentity.hpp>
 #include <EnvelopeTriangle.hpp>
 #include <ControlOnOffButton.hpp>
 #include <ControlEncoder.hpp>
-#include <PinMapping.hpp>
 
-drop::ControlOnOffButton button;
+drop::ControlOnOffButton buttonEnable;
 drop::ControlEncoder encoderButton;
 
-drop::ControlOnOffButton buttonDelay;
+drop::ControlOnOffButton buttonUnused;
 drop::ControlEncoder encoderDelay;
 
 uint16_t intervalLength = 1000;
@@ -28,7 +29,6 @@ drop::InterfaceEnvelope *envelopes[2] = { new drop::EnvelopeIdentity(), new drop
 int8_t envelopeCurrent = 0;
 uint8_t envelopeCount = sizeof(envelopes) / sizeof(drop::InterfaceEnvelope *);
 
-#define MCP23017_ADDR_1 7
 MCP23017 mcp1;
 
 void buttonEnableHandler(bool on)
@@ -45,7 +45,7 @@ void buttonEnableHandler(bool on)
   }
 }
 
-void buttonHandler(bool on)
+void buttonUnusedHandler(bool on)
 {
   if (on)
   {
@@ -83,17 +83,17 @@ void setup() {
   Serial.begin(9600);
   AudioMemory(10);
 
-  button.Init(PIN_BUTTON_GRANULAR);
-  button.RegisterHandler(buttonEnableHandler);
+  mcp1.begin(MCP23017_ADDR_1);
+
+  buttonEnable.Init(PIN_BUTTON_GRANULAR);
+  buttonEnable.RegisterHandler(buttonEnableHandler);
   encoderButton.Init(PIN_ENCODER_GRANULAR_1, PIN_ENCODER_GRANULAR_2);
   encoderButton.RegisterHandler(encoderIntervalLengthHandler);
 
   encoderDelay.Init(PIN_ENCODER_DELAY_1, PIN_ENCODER_DELAY_2);
   encoderDelay.RegisterHandler(encoderEnvelopeHandler);
-  buttonDelay.Init(PIN_BUTTON_DELAY);
-  buttonDelay.RegisterHandler(buttonHandler);
-
-  mcp1.begin(MCP23017_ADDR_1);
+  buttonUnused.Init(PIN_BUTTON_DELAY);
+  buttonUnused.RegisterHandler(buttonUnusedHandler);
 
   buffer = new drop::BufferCircular();
   granular.setBuffer(buffer);
@@ -111,10 +111,10 @@ void setup() {
 }
 
 void loop() {
-  buttonDelay.Update();
+  buttonUnused.Update();
   encoderDelay.Update();
 
-  button.Update();
+  buttonEnable.Update();
   encoderButton.Update();
 
   // read knobs, scale to 0-1.0 numbers
